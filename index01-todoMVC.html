@@ -1,0 +1,164 @@
+<!-- 
+
+需求：
+
+1. 展示任务列表
+2. 添加新任务
+3. 删除任务
+4. 修改任务
+5. 切换任务状态
+6. 批量切换任务状态
+7. 显示未完成任务数
+8. 清除已完成任务
+9. 切换不同状态任务的显示状态
+10. 切换不同状态按钮的样式
+
+ -->
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Template • TodoMVC</title>
+		<link rel="stylesheet" href="css/index.css">
+		<!-- CSS overrides - remove if you don't need it -->
+		<link rel="stylesheet" href="css/app.css">
+	</head>
+    <body ng-app="myApp" ng-controller="myController">
+        <section class="todoapp">
+            <header class="header">
+                <h1>todos</h1>
+                <form ng-submit="add()">
+                    <input type="text" class="new-todo" placeholder="what has to be done?" autofocus ng-model="newTodo">
+                </form>
+            </header>
+            <section class="main">
+                <input ng-change="selectAll()" class="toggle-all" type="checkbox" ng-model="isSelectedAll">
+                <label for="toggle-all">Mark all as complete</label>
+                <ul class="todo-list">
+                    <!-- These are here just to show the structure of the list items -->
+                    <!-- List items should get the class `editing` when editing and `completed` when marked as completed -->
+                    <li ng-class="{completed: item.completed, editing: isEditingId === item.id}" ng-repeat="item in todos | filter: isCompleted" ng-dblclick="edit(item.id)">
+                        <div class="view">
+                            <input type="checkbox" class="toggle" ng-model="item.completed">
+                            <label>{{item.name}}</label>
+                            <button class="destroy" ng-click="delete(item.id)"></button>
+                        </div>
+                        <form ng-submit="read()">
+                            <input type="text" class="edit" ng-model="item.name">
+                        </form>
+                    </li>
+                </ul>
+            </section>
+            <footer class="footer">
+                <span class="todo-count"><strong>{{leftNum()}}</strong> items left</span>
+                <ul class="filters">
+                    <li>
+						<a href="#/" ng-click="showAll()" ng-class="{selected:isCompleted.completed===undefined}">All</a>
+                    </li>
+                    <li>
+						<a href="#/" ng-click="showActive()" ng-class="{selected: isCompleted.completed === false}">Active</a>
+                    </li>
+                    <li>    
+						<a href="#/" ng-click="showCompleted()" ng-class="{selected: isCompleted.completed === true}">Completed</a>
+					</li>
+                </ul>
+                <button class="clear-completed" ng-click="clearAll()">Clear completed</button>
+            </footer>
+        </section>
+        <footer class="info">
+			<p>Double-click to edit a todo</p>
+			<!-- Remove the below line ↓ -->
+			<p>Template by <a href="http://sindresorhus.com">Sindre Sorhus</a></p>
+			<!-- Change this out with your name and url ↓ -->
+			<p>Created by <a href="http://todomvc.com">you</a></p>
+			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+        </footer>
+        <script src="js/angular.js"></script>
+        <script>
+            var myApp = angular.module('myApp',[])
+            myApp.controller('myController',['$scope',function($scope){
+                $scope.todos = [
+                    /* {'id':1,'name':'running',completed:true},
+                    {'id':2,'name':'riding',completed:false},
+                    {'id':3,'name':'hiking',completed:true},
+                    {'id':4,'name':'bathing',completed:false},
+                    {'id':5,'name':'sleeping',completed:true} */
+                ]
+                // 1. 添加新任务函数
+                $scope.add = function () {
+                    var newTodoItem = {
+                        'id': Math.random(),
+                        'name': $scope.newTodo,
+                        'completed': false
+                    } 
+                    $scope.todos.push(newTodoItem)
+                    // 回车添加任务后清除文本框中的内容
+                    $scope.newTodo = ''
+                }
+                // 2. 删除任务函数
+                $scope.delete = function (currentId) {
+                    for ( var i=0; i<$scope.todos.length; i++ ) {
+                        if ( $scope.todos[i].id === currentId ) {
+                            $scope.todos.splice(i,1)
+                        }
+                    }
+                }
+                // 3. 修改任务
+                // 当isEditingId === 当前item.id时变为编辑状态
+                // 由于ng-model="item.name"的存在, 当修改文本框中的内容时, item.name属性已经同步更改到数组中, 所以不需要额外操作。
+                $scope.isEditingId = -1
+                $scope.edit = function (currentId) {
+                    $scope.isEditingId = currentId
+                }
+                $scope.read = function () {
+                    $scope.isEditingId = -1
+                    console.log($scope.todos)
+                }
+                // 4. 批量切换任务状态
+                $scope.isSelectedAll = false
+                $scope.selectAll = function () {
+                    for ( var i=0; i<$scope.todos.length; i++ ) {
+                        $scope.todos[i].completed = $scope.isSelectedAll
+                    }
+                }
+                // 5. 显示未完成任务数
+                $scope.leftNum = function () {
+                    var count = 0
+                    for ( var i=0; i<$scope.todos.length; i++ ) {
+                        if ( $scope.todos[i].completed === false ) {
+                            count++
+                        }
+                    }
+                    return count
+                }
+                // 6. 点击按钮清除已完成任务
+                $scope.clearAll = function () {
+                    for ( var i=0; i<$scope.todos.length; i++ ) {
+                        if ( $scope.todos[i].completed === true ) {
+                            $scope.todos.splice(i,1)
+                            i--
+                        }
+                    }
+                }
+                // 7. 点击不同按钮时, 切换对应状态的任务
+                // 初始状态下显示全部, 以空作为过滤规则即可
+                $scope.isCompleted = {}
+                $scope.showActive = function () {
+                    // $scope.isCompleted = false
+                    // 这里直接将过滤规则传给一个变量是顾及到三个按钮的样式问题
+                    $scope.isCompleted = {completed: false}
+                }
+                $scope.showCompleted = function () {
+                    $scope.isCompleted = {completed: true}
+                }
+                $scope.showAll = function () {
+                    $scope.isCompleted = {}
+                }
+                // 8. 按钮点击样式
+
+            }])
+        </script>
+    </body>
+</html>
