@@ -88,6 +88,10 @@
                 ]
                 // 1. 添加新任务函数
                 $scope.add = function () {
+                    // 如果文本框内容为空, 不进行任何操作, 直接返回
+                    if ( $scope.newTodo === '' ) {
+                        return
+                    }
                     var newTodoItem = {
                         'id': Math.random(),
                         'name': $scope.newTodo,
